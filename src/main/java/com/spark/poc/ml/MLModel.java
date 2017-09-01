@@ -3,6 +3,9 @@ package com.spark.poc.ml;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.spark.ml.attribute.Attribute;
+import org.apache.spark.ml.attribute.AttributeGroup;
+import org.apache.spark.ml.attribute.NumericAttribute;
 import org.apache.spark.ml.classification.NaiveBayes;
 import org.apache.spark.ml.classification.NaiveBayesModel;
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator;
@@ -10,6 +13,7 @@ import org.apache.spark.ml.feature.HashingTF;
 import org.apache.spark.ml.feature.IDF;
 import org.apache.spark.ml.feature.IDFModel;
 import org.apache.spark.ml.feature.Tokenizer;
+import org.apache.spark.ml.feature.VectorSlicer;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -29,6 +33,7 @@ public class MLModel {
 			.createStructType(new StructField[] { DataTypes.createStructField("label", DataTypes.DoubleType, false),
 					DataTypes.createStructField("sentence", DataTypes.StringType, false) });
 
+	private IDFModel idfModel = null;
 	@Autowired
 	private SparkSession sparkSession;
 
@@ -45,19 +50,21 @@ public class MLModel {
 		// vectors
 
 		IDF idf = new IDF().setInputCol("rawFeatures").setOutputCol("features");
-		IDFModel idfModel = idf.fit(featurizedData);
-
+		if (idfModel==null) {
+			idfModel = idf.fit(featurizedData);
+		}
 		return idfModel.transform(featurizedData);
 	}
 
-	private String predict(String text) {
+	public String predict(String text) {
 		
 		List<Row> data = Arrays.asList(RowFactory.create(0.0, text));
 		Dataset<Row> predict = model.transform(prepare(sparkSession.createDataFrame(data, schema)));
 
-		predict.show();
 		Row row = (Row)predict.javaRDD().collect().get(0);
 		double prediction = row.getDouble(row.fieldIndex("prediction"));
+		
+		//predict.write().format("json").save("/tmp/out.json");
 		
 		if (prediction==1.0) {
 			return "Bullish";
@@ -66,12 +73,6 @@ public class MLModel {
 		} else {
 			return "N/A";
 		}
-
-		/*
-		predict.javaRDD().collect().forEach((Row row) -> {
-			System.out.println(row.getDouble(row.fieldIndex("label")) - row.getDouble(row.fieldIndex("prediction")));
-		});
-		*/
 	}
 
 	public void trigger() {
@@ -96,11 +97,6 @@ public class MLModel {
 		
 		predictions.show();
 
-		predictions.javaRDD().collect().forEach((Row row) -> {
-			if (row.getDouble(row.fieldIndex("label")) - row.getDouble(row.fieldIndex("prediction"))==0.0) {
-					System.out.println(row.getString(row.fieldIndex("sentence")) +","+ row.getDouble(row.fieldIndex("prediction")));
-			}
-		});
 		// compute accuracy on the test set
 		MulticlassClassificationEvaluator evaluator;
 
@@ -114,11 +110,8 @@ public class MLModel {
 		logger.info("Accurancy: "+accuracy);
 		logger.info("");
 		
-		
-		logger.info("------------------------>"+predict("go up soon"));
+		logger.info(predict("up up up"));
 
-		logger.info("------------------------>"+predict("Big drop coming"));
-
-		sparkSession.stop();
+		//sparkSession.stop();
 	}
 }
