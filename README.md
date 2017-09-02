@@ -19,5 +19,8 @@ mvn clean install
 mvn sprint-boot:run
 ```
 
-## Test
-Go to http://localhost:8080/index.html to test the application
+## Model Accurancy
+72.%
+
+## Prediction
+A web application http://localhost:8080/index.html can query to ML model to make a prediction
