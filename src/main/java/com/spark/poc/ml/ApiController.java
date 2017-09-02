@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
+
 @RequestMapping("api")
 @RestController
 public class ApiController {
@@ -14,7 +16,8 @@ public class ApiController {
     
     @RequestMapping("predict")
     public String predict( @RequestParam(value="text", defaultValue="up") String text) {
-        return mlModel.predict(text);
+    	Gson gson = new Gson();
+        return gson.toJson(mlModel.predict(text));
     }
     
 }

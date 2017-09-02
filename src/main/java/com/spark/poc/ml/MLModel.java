@@ -3,9 +3,6 @@ package com.spark.poc.ml;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.spark.ml.attribute.Attribute;
-import org.apache.spark.ml.attribute.AttributeGroup;
-import org.apache.spark.ml.attribute.NumericAttribute;
 import org.apache.spark.ml.classification.NaiveBayes;
 import org.apache.spark.ml.classification.NaiveBayesModel;
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator;
@@ -13,7 +10,6 @@ import org.apache.spark.ml.feature.HashingTF;
 import org.apache.spark.ml.feature.IDF;
 import org.apache.spark.ml.feature.IDFModel;
 import org.apache.spark.ml.feature.Tokenizer;
-import org.apache.spark.ml.feature.VectorSlicer;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -56,7 +52,7 @@ public class MLModel {
 		return idfModel.transform(featurizedData);
 	}
 
-	public String predict(String text) {
+	public Result predict(String text) {
 		
 		List<Row> data = Arrays.asList(RowFactory.create(0.0, text));
 		Dataset<Row> predict = model.transform(prepare(sparkSession.createDataFrame(data, schema)));
@@ -64,14 +60,22 @@ public class MLModel {
 		Row row = (Row)predict.javaRDD().collect().get(0);
 		double prediction = row.getDouble(row.fieldIndex("prediction"));
 		
-		//predict.write().format("json").save("/tmp/out.json");
+		
+		org.apache.spark.ml.linalg.DenseVector vector = row.getAs(row.fieldIndex("probability"));
+		
+		Result result = new Result();
+		result.setMessage(text);
 		
 		if (prediction==1.0) {
-			return "Bullish";
+			result.setPredict("Bullish");
+			result.setProbability(vector.apply(1));
+			return result;
 		} else if (prediction==0.0) {
-			return "Bearish";
+			result.setPredict("Bearish");
+			result.setProbability(vector.apply(0));
+			return result;
 		} else {
-			return "N/A";
+			return null;
 		}
 	}
 
@@ -110,7 +114,6 @@ public class MLModel {
 		logger.info("Accurancy: "+accuracy);
 		logger.info("");
 		
-		logger.info(predict("up up up"));
 
 		//sparkSession.stop();
 	}
