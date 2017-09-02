@@ -24,6 +24,11 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <!-- end::actuator[] -->
+        <dependency>
+            <groupId>org.codehaus.janino</groupId>
+            <artifactId>commons-compiler</artifactId>
+            <version>2.7.8</version>
+        </dependency>
 <dependency>
     <groupId>org.apache.spark</groupId>
     <artifactId>spark-core_2.11</artifactId>
