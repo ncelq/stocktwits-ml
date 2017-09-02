@@ -57,6 +57,8 @@ public class MLModel {
 		List<Row> data = Arrays.asList(RowFactory.create(0.0, text));
 		Dataset<Row> predict = model.transform(prepare(sparkSession.createDataFrame(data, schema)));
 
+		predict.show();
+		
 		Row row = (Row)predict.javaRDD().collect().get(0);
 		double prediction = row.getDouble(row.fieldIndex("prediction"));
 		

@@ -1,0 +1,79 @@
+<html>
+<head>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap-theme.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script>
+$(function() {
+    //hang on event of form with id=myform
+    $("#predict-form").submit(function(e) {
+        //prevent Default functionality
+        e.preventDefault();
+        //get the action-url of the form
+        var actionurl = e.currentTarget.action;
+
+        $.ajax({
+            url: actionurl+"?text="+$('#text').val(),
+            type: 'get',
+            success: function(data) {
+            	var obj = jQuery.parseJSON( data );
+            	if (obj.predict=='Bullish') {
+            		$('#text-predict.label-danger').removeClass('label-danger').addClass('label-success');
+            	} else {
+            		$('#text-predict.label-success').removeClass('label-success').addClass('label-danger');
+            		//$('#text-predict.label-success').toggleClass('label-danger');
+            	}
+            	$('#text-predict').html(obj.predict);
+
+            	$('#text-probability').html("Probability: "+Math.floor((obj.probability) * 100)+"%");
+            }
+        });
+    });
+
+});
+</script>
+</head>
+<body>
+<br/>
+ <div class="container">
+  <div class="row-fluid">
+   <div class="span12">
+    <fieldset>
+    <legend>Test ML Model</legend>
+   
+   
+		   <form id="predict-form" action="http://localhost:8080/api/predict">
+		  <div class="form-group">
+		    <label for="text-input">Text</label>
+		    <input type="text" class="form-control" id="text" >
+		  </div>
+		  <button type="submit" class="btn btn-primary" id="submitButton">Submit</button>
+		</form>
+   
+    </fieldset>
+   </div>
+   <br/>
+   <div class="span11">
+       <fieldset>
+    <legend>Result</legend>
+<div class="row-fluid">
+  <div class="col-2">
+<h1><span id="text-predict" class="label label-success"></span> </h1> 
+  </div>
+</div>
+<br/>
+<div class="row-fluid">
+  <div class="col-2">
+<h4><span id="text-probability" class="label label-info"></span></h4>
+  </div>
+</div>
+    </fieldset>
+    
+   </div>
+   
+   
+  </div>
+ </div>  
+</body>
+</html>
